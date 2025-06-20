@@ -1,4 +1,3 @@
-use crate::MapPixel::*;
 use colored::Colorize;
 use std::cmp::PartialEq;
 use std::thread::sleep;
@@ -24,12 +23,12 @@ struct Node {
 const FIELD_SIZE: usize = 32;
 
 fn main() {
-    let mut field = [[Air; FIELD_SIZE]; FIELD_SIZE];
+    let mut field = [[MapPixel::Air; FIELD_SIZE]; FIELD_SIZE];
 
     for x in 0..field.len() {
         for y in 0..field[x].len() {
             if x == 0 || y == 0 || y == field[x].len() - 1 || x == field.len() - 1 {
-                field[x][y] = Wall;
+                field[x][y] = MapPixel::Wall;
             }
         }
     }
@@ -49,13 +48,13 @@ fn main() {
     for x in 0..field.len() {
         for y in 0..field[x].len() {
             if rng.random::<f32>() < 0.3 {
-                field[x][y] = Wall;
+                field[x][y] = MapPixel::Wall;
             }
         }
     }
 
-    field[player_x][player_y] = Air;
-    field[goal_x][goal_y] = Air;
+    field[player_x][player_y] = MapPixel::Air;
+    field[goal_x][goal_y] = MapPixel::Air;
 
     let start_node = Node {
         x: player_x,
@@ -82,7 +81,7 @@ fn main() {
             let mut node = consumed_node;
             while let Some(from_node) = node.from {
                 node = *from_node;
-                field[node.x][node.y] = Path;
+                field[node.x][node.y] = MapPixel::Path;
             }
             print_matrix(
                 (player_x, player_y),
@@ -107,7 +106,7 @@ fn main() {
             if nx >= field.len() || ny >= field.len() {
                 continue;
             }
-            if field[nx][ny] == Wall {
+            if field[nx][ny] == MapPixel::Wall {
                 continue;
             }
 
@@ -128,12 +127,12 @@ fn main() {
                 y: ny,
                 from: Some(Box::new(consumed_node.clone())),
             };
-            field[nx][ny] = Highlighted;
+            field[nx][ny] = MapPixel::Highlighted;
             open_list.push((node, new_cost));
             dead_end = false;
         }
         if dead_end {
-            field[consumed_node.x][consumed_node.y] = DeadEnd;
+            field[consumed_node.x][consumed_node.y] = MapPixel::DeadEnd;
         }
 
         print_matrix(
@@ -171,11 +170,11 @@ fn print_matrix(
                 print = "G".green();
             } else {
                 print = match field[x][y] {
-                    Wall => "#".black(),
-                    Highlighted => "*".yellow(),
-                    DeadEnd => "*".red(),
-                    Path => "*".magenta(),
-                    Air => "#".normal(),
+                    MapPixel::Wall => "#".black(),
+                    MapPixel::Highlighted => "*".yellow(),
+                    MapPixel::DeadEnd => "*".red(),
+                    MapPixel::Path => "*".magenta(),
+                    MapPixel::Air => "#".normal(),
                 };
             }
             print!("{}  ", print);
