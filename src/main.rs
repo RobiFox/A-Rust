@@ -163,7 +163,7 @@ fn main() {
 fn heuristics(from: (usize, usize), to: (usize, usize)) -> usize {
     //0
     //((from.0 as isize - to.0 as isize).pow(2) + (from.1 as isize - to.1 as isize).pow(2)) as usize
-    (((from.0 as isize) - (to.0 as isize)) + ((from.1 as isize) - (to.1 as isize))).abs() as usize
+    (((from.0 as isize) - (to.0 as isize)).abs() + ((from.1 as isize) - (to.1 as isize)).abs()) as usize
 }
 
 fn print_matrix(
