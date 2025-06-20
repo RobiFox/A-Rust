@@ -1,8 +1,8 @@
 use colored::Colorize;
+use rand::Rng;
 use std::cmp::PartialEq;
 use std::thread::sleep;
 use std::time::Duration;
-use rand::Rng;
 
 #[derive(Copy, Clone, PartialEq)]
 enum MapPixel {
@@ -44,10 +44,9 @@ fn main() {
     let goal_x = rng.random_range(0..field.len());
     let goal_y = rng.random_range(0..field.len());
 
-
     for x in 0..field.len() {
         for y in 0..field[x].len() {
-            if rng.random::<f32>() < 0.3 {
+            if rng.random::<f32>() < 0.5 {
                 field[x][y] = MapPixel::Wall;
             }
         }
@@ -95,7 +94,17 @@ fn main() {
         }
         closed_list.push((consumed_node.x, consumed_node.y, cost));
         let mut dead_end = true;
-        for (x, y) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+        let new_cost = 1 + cost;
+        for (x, y) in [
+            (1, 0),
+            (-1, 0),
+            (0, 1),
+            (0, -1),
+            (1, 1),
+            (-1, 1),
+            (1, -1),
+            (-1, -1),
+        ] {
             let nx = consumed_node.x as isize + x;
             let ny = consumed_node.y as isize + y;
             if nx < 0 || ny < 0 {
@@ -110,11 +119,17 @@ fn main() {
                 continue;
             }
 
-            let new_cost = 1 + cost;
-            if closed_list.iter().any(|(x, y, cost)| *x == nx && *y == ny && *cost < new_cost) {
+            if closed_list
+                .iter()
+                .any(|(x, y, cost)| *x == nx && *y == ny && *cost <= new_cost)
+            {
                 continue;
             }
-            if let Some((index, (_, cost))) = open_list.iter().enumerate().find(|(_, (node, _))| node.x == nx && node.y == ny) {
+            if let Some((index, (_, cost))) = open_list
+                .iter()
+                .enumerate()
+                .find(|(_, (node, _))| node.x == nx && node.y == ny)
+            {
                 if *cost < new_cost {
                     open_list[index].1 = *cost;
                 } else {
@@ -141,12 +156,14 @@ fn main() {
             (consumed_node.x, consumed_node.y),
             &field,
         );
-        sleep(Duration::from_millis(250));
+        //sleep(Duration::from_millis(250));
     }
 }
 
 fn heuristics(from: (usize, usize), to: (usize, usize)) -> usize {
-    ((from.0 as isize - to.0 as isize).pow(2) + (from.1 as isize - to.1 as isize).pow(2)) as usize
+    //0
+    //((from.0 as isize - to.0 as isize).pow(2) + (from.1 as isize - to.1 as isize).pow(2)) as usize
+    (((from.0 as isize) - (to.0 as isize)) + ((from.1 as isize) - (to.1 as isize))).abs() as usize
 }
 
 fn print_matrix(
