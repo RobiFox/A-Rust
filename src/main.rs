@@ -21,8 +21,10 @@ struct Node {
     from: Option<Box<Node>>,
 }
 
+const FIELD_SIZE: usize = 32;
+
 fn main() {
-    let mut field = [[Air; 12]; 12];
+    let mut field = [[Air; FIELD_SIZE]; FIELD_SIZE];
 
     for x in 0..field.len() {
         for y in 0..field[x].len() {
@@ -46,11 +48,15 @@ fn main() {
 
     for x in 0..field.len() {
         for y in 0..field[x].len() {
-            if rng.random::<f32>() < 0.1 {
+            if rng.random::<f32>() < 0.3 {
                 field[x][y] = Wall;
             }
         }
     }
+
+    field[player_x][player_y] = Air;
+    field[goal_x][goal_y] = Air;
+
     let start_node = Node {
         x: player_x,
         y: player_y,
@@ -85,6 +91,7 @@ fn main() {
                 &field,
             );
             println!("{}", "Goal reached".green());
+            println!("Steps: {}", cost);
             break;
         }
         closed_list.push((consumed_node.x, consumed_node.y, cost));
@@ -126,7 +133,7 @@ fn main() {
             dead_end = false;
         }
         if dead_end {
-            field[consumed_node.x][consumed_node.y] = Highlighted;
+            field[consumed_node.x][consumed_node.y] = DeadEnd;
         }
 
         print_matrix(
@@ -147,12 +154,12 @@ fn print_matrix(
     player: (usize, usize),
     goal: (usize, usize),
     source: (usize, usize),
-    field: &[[MapPixel; 12]; 12],
+    field: &[[MapPixel; FIELD_SIZE]; FIELD_SIZE],
 ) {
     for _ in 0..10 {
         println!();
     }
-    
+
     for x in 0..field.len() {
         for y in 0..field[x].len() {
             let print;
@@ -168,7 +175,7 @@ fn print_matrix(
                     Highlighted => "*".yellow(),
                     DeadEnd => "*".red(),
                     Path => "*".magenta(),
-                    Air => "H".normal(),
+                    Air => "#".normal(),
                 };
             }
             print!("{}  ", print);
