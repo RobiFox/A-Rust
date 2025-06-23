@@ -11,6 +11,7 @@ enum MapPixel {
     DeadEnd,
     Path,
     Air,
+    Checked,
 }
 
 #[derive(Clone)]
@@ -20,7 +21,7 @@ struct Node {
     from: Option<Box<Node>>,
 }
 
-const FIELD_SIZE: usize = 32;
+const FIELD_SIZE: usize = 64;
 
 fn main() {
     let mut field = [[MapPixel::Air; FIELD_SIZE]; FIELD_SIZE];
@@ -77,10 +78,12 @@ fn main() {
             }
         };
         if consumed_node.x == goal_x && consumed_node.y == goal_y {
+            let mut steps = 0;
             let mut node = consumed_node;
             while let Some(from_node) = node.from {
                 node = *from_node;
                 field[node.x][node.y] = MapPixel::Path;
+                steps += 1;
             }
             print_matrix(
                 (player_x, player_y),
@@ -89,12 +92,12 @@ fn main() {
                 &field,
             );
             println!("{}", "Goal reached".green());
-            println!("Steps: {}", cost);
+            println!("Steps: {}", steps);
             break;
         }
         closed_list.push((consumed_node.x, consumed_node.y, cost));
         let mut dead_end = true;
-        let new_cost = 1 + cost;
+        field[consumed_node.x][consumed_node.y] = MapPixel::Checked;
         for (x, y) in [
             (1, 0),
             (-1, 0),
@@ -105,6 +108,7 @@ fn main() {
             (1, -1),
             (-1, -1),
         ] {
+            let new_cost = ((isize::abs(x) + isize::abs(y)) + cost as isize) as usize;
             let nx = consumed_node.x as isize + x;
             let ny = consumed_node.y as isize + y;
             if nx < 0 || ny < 0 {
@@ -130,8 +134,8 @@ fn main() {
                 .enumerate()
                 .find(|(_, (node, _))| node.x == nx && node.y == ny)
             {
-                if *cost < new_cost {
-                    open_list[index].1 = *cost;
+               if *cost > new_cost {
+                   open_list.remove(index);
                 } else {
                     continue;
                 }
@@ -156,7 +160,7 @@ fn main() {
             (consumed_node.x, consumed_node.y),
             &field,
         );
-        //sleep(Duration::from_millis(250));
+        sleep(Duration::from_millis(250));
     }
 }
 
@@ -191,6 +195,7 @@ fn print_matrix(
                     MapPixel::Highlighted => "*".yellow(),
                     MapPixel::DeadEnd => "*".red(),
                     MapPixel::Path => "*".magenta(),
+                    MapPixel::Checked => "*".bright_yellow(),
                     MapPixel::Air => "#".normal(),
                 };
             }
